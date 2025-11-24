@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MGF Illumination Image Upload Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3E4B6F 0%, #CCCCFF 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                border-radius: 10px;
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .logo img {
+                max-width: 150px;
+            }
+        }
+
+        .org-name {
+            text-align: center;
+            color: #3E4B6F;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .org-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .org-name {
+                font-size: 20px;
+            }
+            .org-subtitle {
+                font-size: 12px;
+            }
+        }
+
+        h1 {
+            color: #3E4B6F;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 22px;
+            }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #CCCCFF;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f8ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .drop-zone {
+                padding: 40px 15px;
+            }
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #3E4B6F;
+            background: #f0f0ff;
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone-text {
+            font-size: 18px;
+            color: #3E4B6F;
+            font-weight: 600;
+        }
+
+        .drop-zone-subtext {
+            font-size: 14px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .preview {
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f0ff;
+            border-radius: 10px;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .preview-info {
+            flex: 1;
+        }
+
+        .preview-filename {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .preview-size {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .form-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #3E4B6F;
+        }
+
+        .autocomplete-results {
+            position: absolute;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: calc(100% - 4px);
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: #f0f0ff;
+        }
+
+        .status {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .new-filename {
+            background: #f0f0ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: none;
+        }
+
+        .new-filename-label {
+            font-weight: 600;
+            color: #3E4B6F;
+            margin-bottom: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3E4B6F 0%, #CCCCFF 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(62, 75, 111, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #6c757d;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="THISMyGutFeeling_tmLOGO_screen.png" alt="My Gut Feeling Logo">
+        </div>
+        <div class="org-name">My Gut Feeling</div>
+        <div class="org-subtitle">Stomach Foundation of Canada</div>
+        <h1>Power of Periwinkle</h1>
+        <p class="subtitle">Illumination Image Upload Portal</p>
+
+        <div class="info-box">
+            <strong>Quick Guide:</strong> Drop your image, enter the city and landmark name, and we'll handle the rest!
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-text">Drop image here or click to select</div>
+            <div class="drop-zone-subtext">JPG, PNG, or JPEG</div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <!-- Preview -->
+        <div class="preview" id="preview">
+            <img id="previewImg" src="" alt="Preview">
+            <div class="preview-info">
+                <div class="preview-filename" id="previewFilename"></div>
+                <div class="preview-size" id="previewSize"></div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="form-section" id="formSection">
+            <div class="form-group" style="position: relative;">
+                <label for="cityInput">City <span class="required">*</span></label>
+                <input type="text" id="cityInput" placeholder="Start typing city name..." autocomplete="off">
+                <div class="autocomplete-results" id="autocompleteResults"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="landmarkInput">Landmark Name <span class="required">*</span></label>
+                <input type="text" id="landmarkInput" placeholder="e.g., CN Tower, Colosseum, City Hall">
+            </div>
+
+            <div class="form-group">
+                <label for="yearInput">Year <span class="required">*</span></label>
+                <select id="yearInput">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2023">2023</option>
+                </select>
+            </div>
+
+            <!-- Status Messages -->
+            <div class="status" id="statusMessage"></div>
+
+            <!-- New Filename Preview -->
+            <div class="new-filename" id="newFilename">
+                <div class="new-filename-label">New filename:</div>
+                <div id="newFilenameText"></div>
+            </div>
+
+            <button id="submitBtn" disabled>Submit & Upload</button>
+            <button class="reset-btn" id="resetBtn">Upload Another Image</button>
+        </div>
+    </div>
+
+    <script>
+        // Major world cities database
+        const cities = [
+            {name: "Toronto", country: "Canada", state: "Ontario"},
+            {name: "Vancouver", country: "Canada", state: "British Columbia"},
+            {name: "Montreal", country: "Canada", state: "Quebec"},
+            {name: "Calgary", country: "Canada", state: "Alberta"},
+            {name: "Edmonton", country: "Canada", state: "Alberta"},
+            {name: "Ottawa", country: "Canada", state: "Ontario"},
+            {name: "Winnipeg", country: "Canada", state: "Manitoba"},
+            {name: "Quebec City", country: "Canada", state: "Quebec"},
+            {name: "Hamilton", country: "Canada", state: "Ontario"},
+            {name: "Kitchener", country: "Canada", state: "Ontario"},
+            {name: "London", country: "Canada", state: "Ontario"},
+            {name: "Halifax", country: "Canada", state: "Nova Scotia"},
+            {name: "Victoria", country: "Canada", state: "British Columbia"},
+            {name: "Windsor", country: "Canada", state: "Ontario"},
+            {name: "Saskatoon", country: "Canada", state: "Saskatchewan"},
+            {name: "Regina", country: "Canada", state: "Saskatchewan"},
+            {name: "St. John's", country: "Canada", state: "Newfoundland and Labrador"},
+            {name: "Fredericton", country: "Canada", state: "New Brunswick"},
+            {name: "Charlottetown", country: "Canada", state: "Prince Edward Island"},
+            {name: "Brampton", country: "Canada", state: "Ontario"},
+            {name: "Burlington", country: "Canada", state: "Ontario"},
+            {name: "Kingston", country: "Canada", state: "Ontario"},
+            {name: "Niagara Falls", country: "Canada", state: "Ontario"},
+            {name: "St. Thomas", country: "Canada", state: "Ontario"},
+            {name: "Fort Erie", country: "Canada", state: "Ontario"},
+            {name: "Medicine Hat", country: "Canada", state: "Alberta"},
+            {name: "Whistler", country: "Canada", state: "British Columbia"},
+            {name: "New York", country: "USA", state: "New York"},
+            {name: "Los Angeles", country: "USA", state: "California"},
+            {name: "Chicago", country: "USA", state: "Illinois"},
+            {name: "Houston", country: "USA", state: "Texas"},
+            {name: "Phoenix", country: "USA", state: "Arizona"},
+            {name: "Philadelphia", country: "USA", state: "Pennsylvania"},
+            {name: "San Antonio", country: "USA", state: "Texas"},
+            {name: "San Diego", country: "USA", state: "California"},
+            {name: "Dallas", country: "USA", state: "Texas"},
+            {name: "San Jose", country: "USA", state: "California"},
+            {name: "Austin", country: "USA", state: "Texas"},
+            {name: "Jacksonville", country: "USA", state: "Florida"},
+            {name: "San Francisco", country: "USA", state: "California"},
+            {name: "Columbus", country: "USA", state: "Ohio"},
+            {name: "Indianapolis", country: "USA", state: "Indiana"},
+            {name: "Seattle", country: "USA", state: "Washington"},
+            {name: "Denver", country: "USA", state: "Colorado"},
+            {name: "Washington", country: "USA", state: "District of Columbia"},
+            {name: "Boston", country: "USA", state: "Massachusetts"},
+            {name: "Portland", country: "USA", state: "Oregon"},
+            {name: "Las Vegas", country: "USA", state: "Nevada"},
+            {name: "Miami", country: "USA", state: "Florida"},
+            {name: "Atlanta", country: "USA", state: "Georgia"},
+            {name: "New Orleans", country: "USA", state: "Louisiana"},
+            {name: "Sioux Falls", country: "USA", state: "South Dakota"},
+            {name: "Rome", country: "Italy", state: "Lazio"},
+            {name: "Milan", country: "Italy", state: "Lombardy"},
+            {name: "Naples", country: "Italy", state: "Campania"},
+            {name: "Turin", country: "Italy", state: "Piedmont"},
+            {name: "Florence", country: "Italy", state: "Tuscany"},
+            {name: "Venice", country: "Italy", state: "Veneto"},
+            {name: "Pisa", country: "Italy", state: "Tuscany"},
+            {name: "Viterbo", country: "Italy", state: "Lazio"},
+            {name: "Mestre", country: "Italy", state: "Veneto"},
+            {name: "Canepina", country: "Italy", state: "Lazio"},
+            {name: "Dublin", country: "Ireland", state: "Dublin"},
+            {name: "Cork", country: "Ireland", state: "Cork"},
+            {name: "Galway", country: "Ireland", state: "Galway"},
+            {name: "Limerick", country: "Ireland", state: "Limerick"},
+            {name: "Cashel", country: "Ireland", state: "Tipperary"},
+            {name: "Tokyo", country: "Japan", state: "Tokyo"},
+            {name: "Osaka", country: "Japan", state: "Osaka"},
+            {name: "Kyoto", country: "Japan", state: "Kyoto"},
+            {name: "Yokohama", country: "Japan", state: "Kanagawa"},
+            {name: "Nagoya", country: "Japan", state: "Aichi"},
+            {name: "Okayama", country: "Japan", state: "Okayama"},
+            {name: "London", country: "United Kingdom", state: "England"},
+            {name: "Manchester", country: "United Kingdom", state: "England"},
+            {name: "Birmingham", country: "United Kingdom", state: "England"},
+            {name: "Edinburgh", country: "United Kingdom", state: "Scotland"},
+            {name: "Glasgow", country: "United Kingdom", state: "Scotland"},
+            {name: "Liverpool", country: "United Kingdom", state: "England"},
+            {name: "Leeds", country: "United Kingdom", state: "England"},
+            {name: "Halifax", country: "United Kingdom", state: "West Yorkshire"},
+            {name: "Paris", country: "France", state: "Île-de-France"},
+            {name: "Lyon", country: "France", state: "Auvergne-Rhône-Alpes"},
+            {name: "Marseille", country: "France", state: "Provence-Alpes-Côte d'Azur"},
+            {name: "Berlin", country: "Germany", state: "Berlin"},
+            {name: "Munich", country: "Germany", state: "Bavaria"},
+            {name: "Hamburg", country: "Germany", state: "Hamburg"},
+            {name: "Madrid", country: "Spain", state: "Madrid"},
+            {name: "Barcelona", country: "Spain", state: "Catalonia"},
+            {name: "Terrassa", country: "Spain", state: "Catalonia"},
+            {name: "Vienna", country: "Austria", state: "Vienna"},
+            {name: "Sydney", country: "Australia", state: "New South Wales"},
+            {name: "Melbourne", country: "Australia", state: "Victoria"},
+            {name: "Brisbane", country: "Australia", state: "Queensland"},
+            {name: "Perth", country: "Australia", state: "Western Australia"},
+            {name: "Auckland", country: "New Zealand", state: "Auckland"},
+            {name: "Wellington", country: "New Zealand", state: "Wellington"}
+        ];
+
+        let selectedFile = null;
+        let selectedCity = null;
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const previewFilename = document.getElementById('previewFilename');
+        const previewSize = document.getElementById('previewSize');
+        const formSection = document.getElementById('formSection');
+        const cityInput = document.getElementById('cityInput');
+        const autocompleteResults = document.getElementById('autocompleteResults');
+        const landmarkInput = document.getElementById('landmarkInput');
+        const yearInput = document.getElementById('yearInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const newFilename = document.getElementById('newFilename');
+        const newFilenameText = document.getElementById('newFilenameText');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Set current year as default
+        const currentYear = new Date().getFullYear();
+        yearInput.value = currentYear;
+
+        // Click to select file
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Handle file selection
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file (JPG, PNG, or JPEG)');
+                return;
+            }
+
+            selectedFile = file;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            previewFilename.textContent = file.name;
+            previewSize.textContent = formatFileSize(file.size);
+
+            // Show preview and form
+            preview.style.display = 'flex';
+            formSection.style.display = 'block';
+            dropZone.style.display = 'none';
+
+            // Focus on city input
+            cityInput.focus();
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // City autocomplete
+        cityInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            if (query.length < 2) {
+                autocompleteResults.style.display = 'none';
+                selectedCity = null;
+                checkFormValid();
+                return;
+            }
+
+            const matches = cities.filter(city =>
+                city.name.toLowerCase().includes(query)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                autocompleteResults.innerHTML = matches.map(city =>
+                    `<div class="autocomplete-item" data-city='${JSON.stringify(city)}'>
+                        ${city.name}, ${city.state}, ${city.country}
+                    </div>`
+                ).join('');
+                autocompleteResults.style.display = 'block';
+            } else {
+                autocompleteResults.style.display = 'none';
+            }
+        });
+
+        // Select city from autocomplete
+        autocompleteResults.addEventListener('click', (e) => {
+            if (e.target.classList.contains('autocomplete-item')) {
+                selectedCity = JSON.parse(e.target.dataset.city);
+                cityInput.value = selectedCity.name;
+                autocompleteResults.style.display = 'none';
+                landmarkInput.focus();
+                checkFormValid();
+            }
+        });
+
+        // Check form validity
+        function checkFormValid() {
+            const valid = selectedCity &&
+                         landmarkInput.value.trim().length > 0 &&
+                         yearInput.value;
+            submitBtn.disabled = !valid;
+        }
+
+        landmarkInput.addEventListener('input', checkFormValid);
+        yearInput.addEventListener('change', checkFormValid);
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#cityInput') && !e.target.closest('#autocompleteResults')) {
+                autocompleteResults.style.display = 'none';
+            }
+        });
+
+        // Submit
+        submitBtn.addEventListener('click', async () => {
+            submitBtn.disabled = true;
+            showStatus('loading', 'Looking up coordinates and preparing file...');
+
+            try {
+                const landmark = landmarkInput.value.trim();
+                const year = yearInput.value;
+
+                // Geocode the location
+                const location = await geocode(landmark, selectedCity.name, selectedCity.country);
+
+                // Build new filename
+                const sanitize = (str) => str.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_.]/g, '');
+
+                const fileExtension = selectedFile.name.split('.').pop();
+                const newName = [
+                    sanitize(location.country),
+                    sanitize(location.state),
+                    sanitize(selectedCity.name),
+                    sanitize(landmark),
+                    location.lat,
+                    location.lng,
+                    year
+                ].join('_') + '.' + fileExtension;
+
+                // Show new filename
+                newFilenameText.textContent = newName;
+                newFilename.style.display = 'block';
+
+                // Create renamed file
+                const renamedFile = new File([selectedFile], newName, {
+                    type: selectedFile.type
+                });
+
+                // Simulate upload (replace with actual upload logic)
+                showStatus('success', `Success! File renamed to: ${newName}\n\nCopy this file and upload it to your image storage (GitHub or Google Drive).`);
+
+                // Download the renamed file
+                downloadFile(renamedFile);
+
+                // Show reset button
+                resetBtn.style.display = 'block';
+
+            } catch (error) {
+                showStatus('error', 'Error: ' + error.message);
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Geocoding using Nominatim (OpenStreetMap - FREE)
+        async function geocode(landmark, city, country) {
+            const query = `${landmark}, ${city}`;
+            const url = `https://nominatim.openstreetmap.org/search?` +
+                `q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'MGF-Periwinkle-Dashboard/1.0 (mygutfeeling.ca)'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Geocoding service returned error ' + response.status);
+                }
+
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    throw new Error(`Could not find "${landmark}" in ${city}. Try a simpler name (e.g., "Tower" instead of "The Famous Tower").`);
+                }
+
+                const result = data[0];
+
+                // Handle missing address data gracefully
+                const address = result.address || {};
+
+                return {
+                    country: address.country || country || selectedCity.country,
+                    state: address.state || address.county || address.region || address.province || selectedCity.state || 'Unknown',
+                    lat: parseFloat(result.lat).toFixed(4),
+                    lng: parseFloat(result.lon).toFixed(4)
+                };
+            } catch (error) {
+                // If geocoding fails completely, provide fallback with city data
+                console.error('Geocoding error:', error);
+                throw new Error(`Geocoding failed: ${error.message}. Try uploading from Squarespace instead of opening locally.`);
+            }
+        }
+
+        // Show status message
+        function showStatus(type, message) {
+            statusMessage.className = 'status ' + type;
+            statusMessage.textContent = message;
+            statusMessage.style.display = 'block';
+        }
+
+        // Download file
+        function downloadFile(file) {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
